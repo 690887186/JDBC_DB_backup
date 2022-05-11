@@ -3,26 +3,39 @@ import java.util.ArrayList;
 
 /**
  * @Author: MingchongLi
- * @Date: 2022/5/10
- * @Version: 1.0
+ * @Date: 2022/5/11
+ * @Version: 1.1.0
  */
 
 public class Main
 {
-    public static void main( String args[] )
+    /**
+     * @param args [0]: DB name, ex: University
+     *             [1]: backup a DB file, true / false
+     *             [2]: backup a sql file, true / false
+     *             defualt: University true true
+     */
+    public static void main(String args[])
     {
-        // check existence
-        if (new File("University.db").exists())
-            Proccessor.ReadFromDB("University");
-        else
-            System.out.println("University.db not exist.");
+        String DBName = "University";
+        boolean backupDB = true;
+        boolean backupSql = true;
 
-        // delete backup if exist
-        if (new File("University_backup.db").exists())
-            new File("University_backup.db").delete();
+        if (args.length != 0)
+            DBName = args[0];
+        if (args.length > 1)
+            backupDB = args[1].equals("true") ? true : false;
+        if (args.length > 2)
+            backupSql = args[2].equals("true") ? true : false;
+
+        // check existence
+        if (new File(DBName + ".db").exists())
+            Proccessor.ReadFromDB(DBName);
+        else
+            System.out.println(DBName + ".db not exist.");
 
         // return sqls in String and print them
-        ArrayList<String> sqls = Proccessor.WriteToDB("University_backup",true);
+        ArrayList<String> sqls = Proccessor.Backup(DBName + "_backup",backupDB,backupSql);
         for (String sql: sqls)
             System.out.println(sql + ";");
     }
