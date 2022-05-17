@@ -1,15 +1,21 @@
-/**
- * @author      MingchongLi
- * @date        2022/5/17
- * @version     1.3
- * @see         Main
- */
-
 import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 
+/**
+ * @author      MingchongLi
+ * @date        2022/5/17
+ * @version     1.4
+ * @see         Main
+ * @see         Table
+ *
+ * @// TODO: 2022/5/18 backupBat
+ */
+
 public class Proccessor {
+    public static ArrayList<String> sqls = new ArrayList<>();
+    private static ArrayList<Table> tablesQueue = new ArrayList<>();
+
     /**
      * Read from a .db file and store in classes
      *
@@ -67,49 +73,67 @@ public class Proccessor {
      * @return sqls in Strings
      */
     public static ArrayList<String> Backup(String db, boolean backupDB, boolean backupSql) {
-        ArrayList<String> sqls = new ArrayList<>();
-        CreateTables(sqls);
-        InsertDatas(sqls);
+        for (Table table : Table.Tables)
+            tablesQueue.add(table);
 
-        if (backupSql) BackupSql(db, sqls);
-        if (backupDB) BackupDB(db, sqls);
+        while(tablesQueue.size() > 0)
+            CreateTableRecursively(tablesQueue.get(0));
+
+        InsertDatas();
+
+        if (backupSql) BackupSql(db);
+        if (backupDB) BackupDB(db);
         return sqls;
     }
 
     /**
      * Generate CREATE instructions and add them in sqls.
      *
-     * @param sqls the ArrayList<String> to be added.
      */
-    public static void CreateTables(ArrayList<String> sqls) {
-        for (Table table : Table.Tables) {
-            String sql = "CREATE TABLE " + table.getName() + "(";
-            for (Column column : table.getColumns())
-                sql += column.getColumnName() + " " + column.getDatatype() + (column.getIsNullable().equals("N") ? " NOT NULL," : ",");
-
-
-            if (table.getPrimaryKeys().size() != 0) {
-                sql += "PRIMARY KEY (";
-                for (String str : table.getPrimaryKeys()) sql += str + ",";
-                sql = sql.substring(0, sql.length() - 1) + "),";
+    public static void CreateTableRecursively(Table table) {
+        // check foreign keys
+        for (ForeignKey fk : table.getForeignKeys()){
+            // search by String name
+            for (Table fkTable : tablesQueue){
+                if (fkTable.getName().equals(fk.getTableA())){
+                    // recursively create the table which has foreign keys of it.
+                    CreateTableRecursively(fkTable);
+                    break;
+                }
             }
-
-            for (ForeignKey fk : table.getForeignKeys())
-                sql += "FOREIGN KEY (" + fk.getColumnB() + ") REFERENCES " + fk.getTableA() + "(" + fk.getColumnA() + "),";
-
-            sql = sql.substring(0, sql.length() - 1) + ")";
-            sqls.add(sql);
-            if (table.getIndexes() != null)
-                sqls.add("CREATE " + table.getIndexes().getNonUnique() + "INDEX " + table.getIndexes().getIndexName() + " ON " + table.getName() + " (" + table.getIndexes().getColumnName() + " ASC)");
         }
+
+        String sql = "CREATE TABLE " + table.getName() + "(";
+        for (Column column : table.getColumns())
+            sql += column.getColumnName() + " " + column.getDatatype() + (column.getIsNullable().equals("N") ? " NOT NULL," : ",");
+
+
+        if (table.getPrimaryKeys().size() != 0) {
+            sql += "PRIMARY KEY (";
+            for (String str : table.getPrimaryKeys()) sql += str + ",";
+            sql = sql.substring(0, sql.length() - 1) + "),";
+        }
+
+        for (ForeignKey fk : table.getForeignKeys())
+            sql += "FOREIGN KEY (" + fk.getColumnB() + ") REFERENCES " + fk.getTableA() + "(" + fk.getColumnA() + "),";
+
+        sql = sql.substring(0, sql.length() - 1) + ")";
+
+        sqls.add("DROP TABLE IF EXISTS " + table.getName());
+
+        sqls.add(sql);
+
+        if (table.getIndexes() != null)
+            sqls.add("CREATE " + table.getIndexes().getNonUnique() + "INDEX " + table.getIndexes().getIndexName() + " ON " + table.getName() + " (" + table.getIndexes().getColumnName() + " ASC)");
+
+        tablesQueue.remove(tablesQueue.indexOf(table));
     }
 
     /**
      * Generate INSERT instructions and add them in sqls.
-     *
-     * @param sqls the ArrayList<String> to be added.
      */
-    public static void InsertDatas(ArrayList<String> sqls) {
+
+    public static void InsertDatas() {
         for (Table table : Table.Tables) {
             for (int i = 0; i < table.getColumns().get(0).getDatas().size(); i++) {
                 String sql = "INSERT INTO " + table.getName() + " VALUES(";
@@ -123,7 +147,7 @@ public class Proccessor {
         }
     }
 
-    public static void BackupDB(String db, ArrayList<String> sqls) {
+    public static void BackupDB(String db) {
         // delete backup if exist
         new File(db + ".db").delete();
 
@@ -154,7 +178,7 @@ public class Proccessor {
         }
     }
 
-    public static void BackupSql(String db, ArrayList<String> sqls) {
+    public static void BackupSql(String db) {
         new File(db + ".sql").delete();
         File file = new File(db + ".sql");
 
@@ -171,4 +195,14 @@ public class Proccessor {
             e.printStackTrace();
         }
     }
+
+
+    /**
+     * @// TODO: 2022/5/18 backup to a bat file
+     * @param db
+     */
+    public static void BackupBat(String db) {
+
+    }
+
 }
