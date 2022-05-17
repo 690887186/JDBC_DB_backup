@@ -1,11 +1,13 @@
 import java.io.File;
 import java.util.ArrayList;
 
+
 /**
- * @Author: MingchongLi
- * @Date: 2022/5/11
- * @Version: 1.1.0
+ * @author      MingchongLi
+ * @date        2022/5/11
+ * @version     1.1
  */
+
 
 public class Main
 {

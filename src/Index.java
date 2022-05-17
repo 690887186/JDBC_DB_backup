@@ -1,3 +1,10 @@
+/**
+ * @author      MingchongLi
+ * @date        2022/5/17
+ * @version     1.0
+ * @see         Table
+ */
+
 public class Index {
     private String columnName;
     private String nonUnique;

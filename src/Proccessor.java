@@ -1,7 +1,8 @@
 /**
- * @Author: MingchongLi
- * @Date: 2022/5/17
- * @Version: 1.3
+ * @author      MingchongLi
+ * @date        2022/5/17
+ * @version     1.3
+ * @see         Main
  */
 
 import java.io.*;
