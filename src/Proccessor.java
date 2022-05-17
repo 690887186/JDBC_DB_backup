@@ -12,6 +12,7 @@ import java.util.ArrayList;
 public class Proccessor {
     /**
      * Read from a .db file and store in classes
+     *
      * @param db DB name
      */
     public static void ReadFromDB(String db) {
@@ -21,9 +22,8 @@ public class Proccessor {
             DatabaseMetaData databaseMetaData = connection.getMetaData();
 
             ResultSet resultSet = databaseMetaData.getTables(null, null, null, new String[]{"TABLE"});
-            while (resultSet.next()) {
-                new Table(resultSet.getString("TABLE_NAME"));
-            }
+            while (resultSet.next()) new Table(resultSet.getString("TABLE_NAME"));
+
             for (Table table : Table.Tables) {
                 ResultSet columns = databaseMetaData.getColumns(null, null, table.getName(), null);
                 while (columns.next()) {
@@ -33,12 +33,14 @@ public class Proccessor {
                     Column column = new Column(columnName, isNullable, datatype);
                     table.addColumn(column);
                     ResultSet datas = connection.createStatement().executeQuery("SELECT " + columnName + " FROM " + table.getName());
+
                     while (datas.next())
-                        column.addData(datas.getString(1));
+                        column.addData((datatype.equals("INTEGER") && datas.getString(1).equals("\\N")) ? "null" : datas.getString(1));
+
                 }
                 ResultSet PK = databaseMetaData.getPrimaryKeys(null, null, table.getName());
-                while (PK.next())
-                    table.addPrimaryKey(PK.getString("COLUMN_NAME"));
+
+                while (PK.next()) table.addPrimaryKey(PK.getString("COLUMN_NAME"));
 
                 ResultSet FK = databaseMetaData.getImportedKeys(null, null, table.getName());
                 while (FK.next())
@@ -55,8 +57,9 @@ public class Proccessor {
 
     /**
      * Backup to files
-     * @param db DB name
-     * @param backupDB back up to a .db file?
+     *
+     * @param db        DB name
+     * @param backupDB  back up to a .db file?
      * @param backupSql back up to a .sql file?
      * @return sqls in Strings
      */
@@ -74,19 +77,19 @@ public class Proccessor {
 
     /**
      * Generate CREATE instructions and add them in sqls.
+     *
      * @param sqls the ArrayList<String> to be added.
      */
-    public static void CreateTables(ArrayList<String> sqls){
+    public static void CreateTables(ArrayList<String> sqls) {
         for (Table table : Table.Tables) {
             String sql = "CREATE TABLE " + table.getName() + "(";
-            for (Column column : table.getColumns()) {
-                sql += column.getColumnName() + " " + column.getDatatype() + ",";
-            }
+            for (Column column : table.getColumns())
+                sql += column.getColumnName() + " " + column.getDatatype() + (column.getIsNullable().equals("N") ? " NOT NULL," : ",");
+
 
             if (table.getPrimaryKeys().size() != 0) {
                 sql += "PRIMARY KEY (";
-                for (String str : table.getPrimaryKeys())
-                    sql += str + ",";
+                for (String str : table.getPrimaryKeys()) sql += str + ",";
                 sql = sql.substring(0, sql.length() - 1) + "),";
             }
 
@@ -100,16 +103,15 @@ public class Proccessor {
 
     /**
      * Generate INSERT instructions and add them in sqls.
+     *
      * @param sqls the ArrayList<String> to be added.
      */
-    public static void InsertDatas(ArrayList<String> sqls){
-        for (Table table : Table.Tables){
+    public static void InsertDatas(ArrayList<String> sqls) {
+        for (Table table : Table.Tables) {
             for (int i = 0; i < table.getColumns().get(0).getDatas().size(); i++) {
                 String sql = "INSERT INTO " + table.getName() + " VALUES(";
-                for (Column column : table.getColumns())
-                {
-                    if (column.getDatatype().startsWith("VARCHAR"))
-                        sql += "\"" + column.getDatas().get(i) + "\",";
+                for (Column column : table.getColumns()) {
+                    if (column.getDatatype().startsWith("VARCHAR")) sql += "\"" + column.getDatas().get(i) + "\",";
                     else sql += column.getDatas().get(i) + ",";
                 }
                 sql = sql.substring(0, sql.length() - 1) + ")";
@@ -118,7 +120,7 @@ public class Proccessor {
         }
     }
 
-    public static void BackupDB(String db, ArrayList<String> sqls){
+    public static void BackupDB(String db, ArrayList<String> sqls) {
         // delete backup if exist
         new File(db + ".db").delete();
 
@@ -136,8 +138,8 @@ public class Proccessor {
 
         try {
             Statement statement = connection.createStatement();
-            for (String sql : sqls)
-                statement.executeUpdate(sql);
+            for (String sql : sqls) statement.executeUpdate(sql);
+
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -150,16 +152,14 @@ public class Proccessor {
         }
     }
 
-    public static void BackupSql(String db, ArrayList<String> sqls){
+    public static void BackupSql(String db, ArrayList<String> sqls) {
         new File(db + ".sql").delete();
         File file = new File(db + ".sql");
 
         try {
             OutputStream outputStream = new FileOutputStream(file);
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
-            for (String sql : sqls) {
-                outputStreamWriter.append(sql + ";\n");
-            }
+            for (String sql : sqls) outputStreamWriter.append(sql + ";\n");
             outputStreamWriter.close();
             outputStream.close();
 

@@ -17,7 +17,7 @@ public class Main
      */
     public static void main(String args[])
     {
-        String DBName = "University";
+        String DBName = "LSH";
         boolean backupDB = true;
         boolean backupSql = true;
 
