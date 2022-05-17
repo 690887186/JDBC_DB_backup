@@ -1,12 +1,11 @@
 /**
  * @Author: MingchongLi
  * @Date: 2022/5/17
- * @Version: 1.2
+ * @Version: 1.3
  */
 
 import java.io.*;
 import java.sql.*;
-import java.time.chrono.ThaiBuddhistChronology;
 import java.util.ArrayList;
 
 public class Proccessor {
@@ -30,6 +29,7 @@ public class Proccessor {
                     String columnName = columns.getString("COLUMN_NAME");
                     String datatype = columns.getString("TYPE_NAME");
                     String isNullable = columns.getString("IS_NULLABLE");
+
                     Column column = new Column(columnName, isNullable, datatype);
                     table.addColumn(column);
                     ResultSet datas = connection.createStatement().executeQuery("SELECT " + columnName + " FROM " + table.getName());
@@ -46,6 +46,8 @@ public class Proccessor {
                 while (FK.next())
                     table.addForeignKey(FK.getString("PKTABLE_NAME"), FK.getString("PKCOLUMN_NAME"), FK.getString("FKTABLE_NAME"), FK.getString("FKCOLUMN_NAME"));
 
+                ResultSet IN = databaseMetaData.getIndexInfo(null, null, table.getName(), false, false);
+                while (IN.next()) table.addIndex(IN.getString("COLUMN_NAME"), IN.getString("NON_UNIQUE"));
             }
             connection.close();
         } catch (Exception e) {
@@ -68,10 +70,8 @@ public class Proccessor {
         CreateTables(sqls);
         InsertDatas(sqls);
 
-        if (backupSql)
-            BackupSql(db, sqls);
-        if (backupDB)
-            BackupDB(db, sqls);
+        if (backupSql) BackupSql(db, sqls);
+        if (backupDB) BackupDB(db, sqls);
         return sqls;
     }
 
@@ -98,6 +98,8 @@ public class Proccessor {
 
             sql = sql.substring(0, sql.length() - 1) + ")";
             sqls.add(sql);
+            if (table.getIndexes() != null)
+                sqls.add("CREATE " + table.getIndexes().getNonUnique() + "INDEX " + table.getIndexes().getIndexName() + " ON " + table.getName() + " (" + table.getIndexes().getColumnName() + " ASC)");
         }
     }
 
@@ -139,7 +141,6 @@ public class Proccessor {
         try {
             Statement statement = connection.createStatement();
             for (String sql : sqls) statement.executeUpdate(sql);
-
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -162,7 +163,6 @@ public class Proccessor {
             for (String sql : sqls) outputStreamWriter.append(sql + ";\n");
             outputStreamWriter.close();
             outputStream.close();
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return;

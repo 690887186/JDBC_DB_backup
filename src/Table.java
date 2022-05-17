@@ -14,7 +14,7 @@ public class Table {
     private ArrayList<Column> columns = new ArrayList<>();
     private ArrayList<ForeignKey> foreignKeys= new ArrayList<>();
     private ArrayList<String> primaryKeys = new ArrayList<>();
-
+    private Index indexes = null;
 
     public Table(String name){
         this.name = name;
@@ -47,6 +47,16 @@ public class Table {
 
     public ArrayList<String> getPrimaryKeys() {
         return primaryKeys;
+    }
+
+    public void addIndex(String columnName, String nonUnique){
+        if (indexes == null)
+            indexes = new Index(columnName, nonUnique, name + "_index");
+        else indexes.addColumn(columnName);
+    }
+
+    public Index getIndexes() {
+        return indexes;
     }
 
     public String getName() {
