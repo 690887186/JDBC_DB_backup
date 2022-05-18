@@ -72,7 +72,7 @@ public class Proccessor {
      * @param backupSql back up to a .sql file?
      * @return sqls in Strings
      */
-    public static ArrayList<String> Backup(String db, boolean backupDB, boolean backupSql) {
+    public static ArrayList<String> Backup(String db, boolean backupDB, boolean backupSql, boolean backupBat) {
         for (Table table : Table.Tables)
             tablesQueue.add(table);
 
@@ -83,6 +83,7 @@ public class Proccessor {
 
         if (backupSql) BackupSql(db);
         if (backupDB) BackupDB(db);
+        if (backupBat) BackupBat(db);
         return sqls;
     }
 
@@ -198,11 +199,33 @@ public class Proccessor {
 
 
     /**
-     * @// TODO: 2022/5/18 backup to a bat file
      * @param db
      */
     public static void BackupBat(String db) {
+        new File("do.bat").delete();
+        File do_file = new File("do.bat");
+        new File(db + ".bat").delete();
+        File db_file = new File(db + ".bat");
 
+        try {
+            OutputStream outputStream = new FileOutputStream(do_file);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
+            outputStreamWriter.append("For /L %%i in (1,1,10) do (sqlite3 "+ db + ".db<"+ db + ".bat)");
+            outputStreamWriter.close();
+            outputStream.close();
+
+            outputStream = new FileOutputStream(db_file);
+            outputStreamWriter = new OutputStreamWriter(outputStream);
+            for (String sql : sqls) outputStreamWriter.append(sql + ";\n");
+            outputStreamWriter.close();
+            outputStream.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
