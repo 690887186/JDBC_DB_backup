@@ -5,8 +5,12 @@ import java.util.ArrayList;
 /**
  * @author      MingchongLi
  * @author      limingchong124@gmail.com
- * @date        2022/5/11
+ * @date        2022/5/15
  * @version     1.1
+ *
+ * @// TODO     do sql while bat
+ * @// TODO     Chinook.db
+ * @// TODO     view
  */
 
 
@@ -21,19 +25,15 @@ public class Main
      */
     public static void main(String args[])
     {
-        String DBName = "LSH";
+        String DBName = "Chinook";
         boolean backupDB = true;
         boolean backupSql = true;
         boolean backupBat = true;
 
-        if (args.length != 0)
-            DBName = args[0];
-        if (args.length > 1)
-            backupDB = args[1].equals("true") ? true : false;
-        if (args.length > 2)
-            backupSql = args[2].equals("true") ? true : false;
-        if (args.length > 3)
-            backupBat = args[3].equals("true") ? true : false;
+        if (args.length != 0) DBName = args[0];
+        if (args.length > 1) backupDB = args[1].equals("true") ? true : false;
+        if (args.length > 2) backupSql = args[2].equals("true") ? true : false;
+        if (args.length > 3) backupBat = args[3].equals("true") ? true : false;
 
         // check existence
         if (new File(DBName + ".db").exists())

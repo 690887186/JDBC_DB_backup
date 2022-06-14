@@ -1,19 +1,20 @@
 /**
- * @author      MingchongLi
- * @date        2022/5/10
- * @version     1.0
- * @see         Table
+ * @author MingchongLi
+ * @date 2022/6/15
+ * @version 1.1
+ * @see Table
  */
 
+import java.sql.Blob;
 import java.util.ArrayList;
 
 public class Column {
     private String datatype;
     private String isNullable;
     private String columnName;
-    private ArrayList<String> datas = new ArrayList<>();
+    private ArrayList<Data> datas = new ArrayList<>();
 
-    public Column(String name, String nullable, String dt){
+    public Column(String name, String nullable, String dt) {
         columnName = name;
         datatype = dt;
         isNullable = nullable;
@@ -31,11 +32,29 @@ public class Column {
         return isNullable;
     }
 
-    public void addData(String data){
-        datas.add(data);
+    public void addData(String data) {
+        datas.add(new Data(data));
     }
 
-    public ArrayList<String> getDatas() {
+    public void addData(int data){
+        datas.add(new Data(data));
+    }
+
+    public void addData(double data){
+        datas.add(new Data(data));
+    }
+
+    public void addData(float data){
+        datas.add(new Data(data));
+    }
+    public void addData(byte[] data){
+        datas.add(new Data(data));
+    }
+    public void addData(char data){
+        datas.add(new Data(data));
+    }
+
+    public ArrayList<Data> getDatas() {
         return datas;
     }
 }

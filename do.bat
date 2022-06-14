@@ -1,0 +1,1 @@
+For /L %%i in (1,1,10) do (sqlite3 Northwind_backup.db<Northwind_backup.bat)
