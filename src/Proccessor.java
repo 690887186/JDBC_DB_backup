@@ -83,10 +83,17 @@ public class Proccessor {
         while(tablesQueue.size() > 0) CreateTableRecursively(tablesQueue.get(0));
 
         InsertDatas();
+        System.out.println("end insert");
 
         if (backupSql) BackupSql(db);
+        System.out.println("end sql");
+
         if (backupDB) BackupDB(db);
+        System.out.println("end db");
+
         if (backupBat) BackupBat(db);
+        System.out.println("end bat");
+
         return sqls;
     }
 
@@ -99,9 +106,8 @@ public class Proccessor {
         for (ForeignKey fk : table.getForeignKeys()){
             // search by String name
             for (Table fkTable : tablesQueue){
-                if (fkTable.getName().equals(fk.getTableA())){
+                if (fkTable.getName().equals(fk.getTableA()) && !table.getName().equals(fk.getTableA())){
                     // recursively create the table which has foreign keys of it.
-                    System.out.println(fkTable.getName());
                     CreateTableRecursively(fkTable);
                     break;
                 }
